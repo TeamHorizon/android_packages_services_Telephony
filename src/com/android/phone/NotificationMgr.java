@@ -756,9 +756,14 @@ public class NotificationMgr {
     /* package */ void updateMwi(boolean visible) {
         if (DBG) log("updateMwi(): " + visible);
 
+        int resId;
         if (visible) {
-            int resId = android.R.drawable.stat_notify_voicemail;
-
+            if (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.KEY_VOICEMAIL_BREATH, 0) == 1) {
+                resId = R.drawable.stat_notify_voicemail_breath;
+            } else {
+                resId = android.R.drawable.stat_notify_voicemail;
+            }
             // This Notification can get a lot fancier once we have more
             // information about the current voicemail messages.
             // (For example, the current voicemail system can't tell
