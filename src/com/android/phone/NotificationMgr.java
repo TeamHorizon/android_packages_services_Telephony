@@ -47,6 +47,7 @@ import android.text.TextDirectionHeuristics;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
+import android.provider.Settings;
 
 import com.android.internal.telephony.Call;
 import com.android.internal.telephony.CallManager;
@@ -563,7 +564,9 @@ public class NotificationMgr {
         }
 
         Notification.Builder builder = new Notification.Builder(mContext);
-        builder.setSmallIcon(android.R.drawable.stat_notify_missed_call)
+        if (Settings.System.getInt(mContext.getContentResolver(),
+               Settings.System.KEY_MISSED_CALL_BREATH, 0) == 1) {
+             builder.setSmallIcon(R.drawable.stat_notify_missed_call_breath)
                 .setTicker(mContext.getString(R.string.notification_missedCallTicker, callName))
                 .setWhen(date)
                 .setContentTitle(mContext.getText(titleResId))
@@ -571,6 +574,14 @@ public class NotificationMgr {
                 .setContentIntent(pendingCallLogIntent)
                 .setAutoCancel(true)
                 .setDeleteIntent(createClearMissedCallsIntent());
+           } else {
+             builder.setSmallIcon(android.R.drawable.stat_notify_missed_call)
+                .setTicker(mContext.getString(R.string.notification_missedCallTicker, callName))
+                .setWhen(date)
+                .setContentIntent(pendingCallLogIntent)
+                .setAutoCancel(true)
+                .setDeleteIntent(createClearMissedCallsIntent());
+        }
 
         // Simple workaround for issue 6476275; refrain having actions when the given number seems
         // not a real one but a non-number which was embedded by methods outside (like
