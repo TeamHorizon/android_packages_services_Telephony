@@ -20,4 +20,11 @@
     <string name="preference_category_interface">Interface</string>
     <string name="non_intrusive_incall_title">Non intrusive</string>
     <string name="non_intrusive_incall_summary">Use non intrusive dialog for incoming calls</string>
+    <!-- In-call vibration -->
+    <string name="incall_vibration">In-call vibration</string>
+    <string name="vibrate_outgoing">Vibrate on answer</string>
+    <string name="vibrate_call_waiting">Vibrate on call waiting</string>
+    <string name="vibrate_hangup">Vibrate on hang up</string>
+    <string name="vibrate_60_title">Vibrate every minute</string>
+    <string name="vibrate_60_summary">Vibrates at the 60 second mark of every minute during outgoing calls</string>
 </resources>
