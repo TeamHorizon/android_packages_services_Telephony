@@ -67,6 +67,7 @@ import com.android.internal.telephony.PhoneFactory;
 import com.android.internal.telephony.TelephonyCapabilities;
 import com.android.internal.telephony.TelephonyIntents;
 import com.android.internal.telephony.cdma.TtyIntent;
+import com.android.internal.telephony.util.BlacklistUtils;
 import com.android.phone.common.CallLogAsync;
 import com.android.phone.OtaUtils.CdmaOtaScreenState;
 import com.android.phone.WiredHeadsetManager.WiredHeadsetListener;
@@ -256,6 +257,12 @@ public class PhoneGlobals extends ContextWrapper implements WiredHeadsetListener
     private AlarmManager mAM;
     private HandlerThread mVibrationThread;
     private Handler mVibrationHandler;
+
+    // For adding to Blacklist from call log
+    private static final String REMOVE_BLACKLIST = "com.android.phone.REMOVE_BLACKLIST";
+    private static final String EXTRA_NUMBER = "number";
+    private static final String EXTRA_TYPE = "type";
+    private static final String EXTRA_FROM_NOTIFICATION = "fromNotification";
 
     /**
      * Set the restore mute state flag. Used when we are setting the mute state
@@ -490,6 +497,9 @@ public class PhoneGlobals extends ContextWrapper implements WiredHeadsetListener
 
             ringer = Ringer.init(this, bluetoothManager);
 
+            // Convert old blacklist to new format
+            Blacklist.migrateOldDataIfPresent(this);
+
             // Audio router
             audioRouter = new AudioRouter(this, bluetoothManager, wiredHeadsetManager, mCM);
 
@@ -540,6 +550,7 @@ public class PhoneGlobals extends ContextWrapper implements WiredHeadsetListener
                 intentFilter.addAction(TtyIntent.TTY_PREFERRED_MODE_CHANGE_ACTION);
             }
             intentFilter.addAction(AudioManager.RINGER_MODE_CHANGED_ACTION);
+            intentFilter.addAction(REMOVE_BLACKLIST);
             registerReceiver(mReceiver, intentFilter);
 
             // Use a separate receiver for ACTION_MEDIA_BUTTON broadcasts,
@@ -711,6 +722,15 @@ public class PhoneGlobals extends ContextWrapper implements WiredHeadsetListener
                 Uri.fromParts(Constants.SCHEME_SMSTO, number, null),
                 context, NotificationBroadcastReceiver.class);
         return PendingIntent.getBroadcast(context, 0, intent, 0);
+    }
+
+    /* package */ static PendingIntent getUnblockNumberFromNotificationPendingIntent(
+            Context context, String number, int type) {
+        Intent intent = new Intent(REMOVE_BLACKLIST);
+        intent.putExtra(EXTRA_NUMBER, number);
+        intent.putExtra(EXTRA_FROM_NOTIFICATION, true);
+        intent.putExtra(EXTRA_TYPE, type);
+        return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     boolean isSimPinEnabled() {
@@ -1099,6 +1119,14 @@ public class PhoneGlobals extends ContextWrapper implements WiredHeadsetListener
                 if (VDBG) Log.d(LOG_TAG, "mReceiver: ACTION_VIBRATE_60");
                 mAM.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 60000, mVibrateIntent);
                 vibrate(70, 70, -1);
+            } else if (action.equals(REMOVE_BLACKLIST)) {
+                if (intent.getBooleanExtra(EXTRA_FROM_NOTIFICATION, false)) {
+                    // Dismiss the notification that brought us here
+                    int blacklistType = intent.getIntExtra(EXTRA_TYPE, 0);
+                    notificationMgr.cancelBlacklistedNotification(blacklistType);
+                    BlacklistUtils.addOrUpdate(context, intent.getStringExtra(EXTRA_NUMBER),
+                            0, blacklistType);
+                }
             }
         }
     }
