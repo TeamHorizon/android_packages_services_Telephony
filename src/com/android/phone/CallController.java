@@ -30,6 +30,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemProperties;
 import android.provider.CallLog.Calls;
+import android.telephony.DisconnectCause;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.ServiceState;
 import android.util.Log;
@@ -421,7 +422,8 @@ public class CallController extends Handler {
                 // condition call logging in a single place (placeCall()) that also has access to
                 // the number we attempted to dial (not placeCall()).
                 mCallLogger.logCall(null /* callerInfo */, number, 0 /* presentation */,
-                        Calls.OUTGOING_TYPE, System.currentTimeMillis(), 0 /* duration */);
+                        Calls.OUTGOING_TYPE, System.currentTimeMillis(), 0 /* duration */,
+                        DisconnectCause.ERROR_UNSPECIFIED);
 
                 return okToCallStatus;
             }
@@ -525,7 +527,8 @@ public class CallController extends Handler {
 
                 // Log failed call.
                 mCallLogger.logCall(null /* callerInfo */, number, 0 /* presentation */,
-                        Calls.OUTGOING_TYPE, System.currentTimeMillis(), 0 /* duration */);
+                        Calls.OUTGOING_TYPE, System.currentTimeMillis(), 0 /* duration */,
+                        DisconnectCause.ERROR_UNSPECIFIED);
 
                 return CallStatusCode.CALL_FAILED;
 

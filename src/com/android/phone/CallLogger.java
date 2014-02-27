@@ -26,6 +26,7 @@ import com.android.phone.common.CallLogAsync;
 import android.net.Uri;
 import android.os.SystemProperties;
 import android.provider.CallLog.Calls;
+import android.telephony.DisconnectCause;
 import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.util.Log;
@@ -57,6 +58,7 @@ class CallLogger {
         final String number = c.getAddress();
         final long date = c.getCreateTime();
         final long duration = c.getDurationMillis();
+        final int disconnectCause = c.getDisconnectCause();
         final Phone phone = c.getCall().getPhone();
 
         final CallerInfo ci = getCallerInfoFromConnection(c);  // May be null.
@@ -79,7 +81,7 @@ class CallLogger {
 
         // Don't log OTASP calls.
         if (!isOtaspNumber) {
-            logCall(ci, logNumber, presentation, callLogType, date, duration);
+            logCall(ci, logNumber, presentation, callLogType, date, duration, disconnectCause);
         }
     }
 
@@ -87,13 +89,13 @@ class CallLogger {
      * Came as logCall(Connection,int) but calculates the call type from the connection object.
      */
     public void logCall(Connection c) {
-        final Connection.DisconnectCause cause = c.getDisconnectCause();
+        final int cause = c.getDisconnectCause();
 
         // Set the "type" to be displayed in the call log (see constants in CallLog.Calls)
         final int callLogType;
 
         if (c.isIncoming()) {
-            callLogType = (cause == Connection.DisconnectCause.INCOMING_MISSED ?
+            callLogType = (cause == DisconnectCause.INCOMING_MISSED ?
                            Calls.MISSED_TYPE : Calls.INCOMING_TYPE);
         } else {
             callLogType = Calls.OUTGOING_TYPE;
@@ -107,7 +109,7 @@ class CallLogger {
      * Logs a call to the call from the parameters passed in.
      */
     public void logCall(CallerInfo ci, String number, int presentation, int callType, long start,
-                        long duration) {
+                        long duration, int disconnectCause) {
         final boolean isEmergencyNumber = PhoneNumberUtils.isLocalEmergencyNumber(number,
                 mApplication);
 
@@ -125,11 +127,12 @@ class CallLogger {
         if (isOkToLogThisCall) {
             if (DBG) {
                 log("sending Calllog entry: " + ci + ", " + PhoneUtils.toLogSafePhoneNumber(number)
-                    + "," + presentation + ", " + callType + ", " + start + ", " + duration);
+                    + "," + presentation + ", " + callType + ", " + start + ", " + duration
+                    + ", " + DisconnectCause.toString(disconnectCause));
             }
 
             CallLogAsync.AddCallArgs args = new CallLogAsync.AddCallArgs(mApplication, ci, number,
-                    presentation, callType, start, duration);
+                    presentation, callType, start, duration, disconnectCause);
             mCallLog.addCall(args);
         }
     }
