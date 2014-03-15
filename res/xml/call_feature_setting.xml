@@ -218,4 +218,11 @@
             android:defaultValue="true" />
     </PreferenceCategory>
 
+    <CheckBoxPreference
+        android:key="button_smart_phone_call"
+        android:title="@string/smart_phone_call_title"
+        android:summary="@string/smart_phone_call_summary"
+        android:persistent="false"
+        android:defaultValue="false" />
+
 </PreferenceScreen>

@@ -28,6 +28,13 @@
     <string name="vibrate_60_title">Vibrate every minute</string>
     <string name="vibrate_60_summary">Vibrates at the 60 second mark of every minute during outgoing calls</string>
 
+    <!-- Smart Phone Call -->
+    <string name="smart_phone_call_title">Smart phone call</string>
+    <string name="smart_phone_call_summary">Put on your ear, and this will automatically call current number in message or dialer</string>
+
+    <string name="call_end_sound_title">Call end tone</string>
+    <string name="call_end_sound_summary">Play tone on end call</string>
+
     <!-- Integrated phone directory -->
     <string name="enable_suggestions_title">Enable suggestions</string>
     <string name="enable_suggestions_summary">Suggest phone number of nearby places when searching in the dialer</string>
