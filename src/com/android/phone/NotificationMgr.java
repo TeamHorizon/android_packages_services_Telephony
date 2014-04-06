@@ -75,7 +75,7 @@ public class NotificationMgr {
     private static final boolean DBG =
             (PhoneGlobals.DBG_LEVEL >= 1) && (SystemProperties.getInt("ro.debuggable", 0) == 1);
     // Do not check in with VDBG = true, since that may write PII to the system log.
-    private static final boolean VDBG = false;
+    private static final boolean VDBG = true;
 
     private static final String[] CALL_LOG_PROJECTION = new String[] {
         Calls._ID,
@@ -601,6 +601,8 @@ public class NotificationMgr {
              builder.setSmallIcon(android.R.drawable.stat_notify_missed_call)
                 .setTicker(mContext.getString(R.string.notification_missedCallTicker, callName))
                 .setWhen(date)
+                .setContentTitle(mContext.getText(titleResId))
+                .setContentText(expandedText)
                 .setContentIntent(pendingCallLogIntent)
                 .setAutoCancel(true)
                 .setDeleteIntent(createClearMissedCallsIntent());
