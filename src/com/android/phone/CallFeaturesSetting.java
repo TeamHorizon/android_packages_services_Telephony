@@ -183,9 +183,6 @@ public class CallFeaturesSetting extends PreferenceActivity
     private static final String BUTTON_TTY_KEY         = "button_tty_mode_key";
     private static final String BUTTON_HAC_KEY         = "button_hac_key";
 
-    private static final String BUTTON_ENABLE_SUGGESTIONS = "button_enable_suggestions";
-    private static final String BUTTON_ENABLE_REVERSE_LOOKUP = "button_enable_reverse_lookup";
-
     private static final String BUTTON_GSM_UMTS_OPTIONS = "button_gsm_more_expand_key";
     private static final String BUTTON_CDMA_OPTIONS = "button_cdma_more_expand_key";
 
@@ -290,8 +287,6 @@ public class CallFeaturesSetting extends PreferenceActivity
     private SipSharedPreferences mSipSharedPreferences;
     private CheckBoxPreference mNonIntrusiveInCall;
     private CheckBoxPreference mSmartCall;
-    private CheckBoxPreference mEnableSuggestions;
-    private CheckBoxPreference mEnableReverseLookup;
     private PreferenceScreen mButtonBlacklist;
 
     private class VoiceMailProvider {
@@ -550,14 +545,6 @@ public class CallFeaturesSetting extends PreferenceActivity
         } else if (preference == mSmartCall){
             Settings.System.putInt(getContentResolver(), Settings.System.SMART_PHONE_CALLER,
                     mSmartCall.isChecked() ? 1 : 0);
-            return true;
-        } else if (preference == mEnableSuggestions){
-            Settings.System.putInt(getContentResolver(), Settings.System.ENABLE_DIALER_SUGGESTIONS,
-                    mEnableSuggestions.isChecked() ? 1 : 0);
-            return true;
-        } else if (preference == mEnableReverseLookup){
-            Settings.System.putInt(getContentResolver(), Settings.System.ENABLE_DIALER_REVERSE_LOOKUP,
-                    mEnableReverseLookup.isChecked() ? 1 : 0);
             return true;
         }
         return false;
@@ -1649,14 +1636,6 @@ public class CallFeaturesSetting extends PreferenceActivity
         mSmartCall = (CheckBoxPreference) findPreference(BUTTON_SMART_PHONE_CALL_KEY);
         mSmartCall.setChecked(Settings.System.getInt(getContentResolver(),
                 Settings.System.SMART_PHONE_CALLER, 0) != 0 ? true : false);
-
-        mEnableSuggestions = (CheckBoxPreference) findPreference(BUTTON_ENABLE_SUGGESTIONS);
-        mEnableSuggestions.setChecked(Settings.System.getInt(getContentResolver(),
-                Settings.System.ENABLE_DIALER_SUGGESTIONS, 1) == 0 ? false : true);
-
-        mEnableReverseLookup = (CheckBoxPreference) findPreference(BUTTON_ENABLE_REVERSE_LOOKUP);
-        mEnableReverseLookup.setChecked(Settings.System.getInt(getContentResolver(),
-                Settings.System.ENABLE_DIALER_REVERSE_LOOKUP, 1) == 0 ? false : true);
 
         // create intent to bring up contact list
         mContactListIntent = new Intent(Intent.ACTION_GET_CONTENT);
