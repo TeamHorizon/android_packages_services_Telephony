@@ -14,7 +14,6 @@ LOCAL_STATIC_JAVA_LIBRARIES := \
         com.android.services.telephony.common \
         libphonenumbergoogle \
         guava \
-        org.cyanogenmod.platform.sdk
 
 LOCAL_SRC_FILES := $(call all-java-files-under, $(src_dirs))
 LOCAL_SRC_FILES += \
