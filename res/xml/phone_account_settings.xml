@@ -30,6 +30,7 @@
             android:order="1" />
 
         <PreferenceScreen
+            android:key="phone_account_all_calling_accounts"
             android:title="@string/phone_accounts_all_calling_accounts"
             android:summary="@string/phone_accounts_all_calling_accounts_summary"
             android:persistent="false"
@@ -38,17 +39,6 @@
             <intent android:action="android.intent.action.MAIN"
                 android:targetPackage="com.android.server.telecom"
                 android:targetClass="com.android.server.telecom.settings.EnableAccountPreferenceActivity" />
-        </PreferenceScreen>
-
-        <PreferenceScreen
-          android:key="button_xdivert"
-          android:title="@string/xdivert_title"
-          android:summary="@string/xdivert_summary"
-          android:persistent="false"
-          android:order="1500">
-          <intent android:action="android.intent.action.MAIN"
-             android:targetPackage="com.qti.xdivert"
-             android:targetClass="com.qti.xdivert.XDivertSetting" />
         </PreferenceScreen>
 
     </PreferenceCategory>
@@ -80,20 +70,6 @@
             android:title="@string/sip_receive_calls"
             android:summary="@string/sip_receive_calls_summary"
             android:persistent="true"/>
-
-        <SwitchPreference
-            android:key="duration_enable_key"
-            android:persistent="false"
-            android:title="@string/preferred_duration_title"
-            android:summaryOn="@string/duration_enable_summary"
-            android:summaryOff="@string/duration_disable_summary" />
-
-        <SwitchPreference
-            android:key="button_vibrate_after_connected"
-            android:title="@string/vibrate_after_connected_title"
-            android:persistent="false"
-            android:defaultValue="true"
-            android:summary="@string/vibrate_after_connected_summary" />
 
     </PreferenceCategory>
 

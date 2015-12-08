@@ -34,6 +34,7 @@ import com.android.services.telephony.sip.SipUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -47,15 +48,10 @@ public class PhoneAccountSettingsFragment extends PreferenceFragment
     private static final String DEFAULT_OUTGOING_ACCOUNT_KEY = "default_outgoing_account";
     private static final String ALL_CALLING_ACCOUNTS_KEY = "phone_account_all_calling_accounts";
 
-    private static final String BUTTON_XDIVERT_KEY = "button_xdivert";
-
     private static final String SIP_SETTINGS_CATEGORY_PREF_KEY =
             "phone_accounts_sip_settings_category_key";
     private static final String USE_SIP_PREF_KEY = "use_sip_calling_options_key";
     private static final String SIP_RECEIVE_CALLS_PREF_KEY = "sip_receive_calls_key";
-
-    private static final String SHOW_DURATION_KEY = "duration_enable_key";
-    private static final String BUTTON_VIBRATE_CONNECTED_KEY = "button_vibrate_after_connected";
 
     private static final String LEGACY_ACTION_CONFIGURE_PHONE_ACCOUNT =
             "android.telecom.action.CONNECTION_SERVICE_CONFIGURE";
@@ -81,9 +77,6 @@ public class PhoneAccountSettingsFragment extends PreferenceFragment
     private ListPreference mUseSipCalling;
     private SwitchPreference mSipReceiveCallsPreference;
     private SipSharedPreferences mSipSharedPreferences;
-
-    private SwitchPreference mShowDurationSwitch;
-    private SwitchPreference mVibrateAfterConnected;
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -160,15 +153,6 @@ public class PhoneAccountSettingsFragment extends PreferenceFragment
             getPreferenceScreen().removePreference(mAccountList);
         }
 
-        if (TelephonyManager.getDefault().getMultiSimConfiguration() !=
-                 TelephonyManager.MultiSimVariants.DSDS) {
-            Preference mXDivertPref = getPreferenceScreen().findPreference(BUTTON_XDIVERT_KEY);
-            if (mXDivertPref != null) {
-                Log.d(LOG_TAG, "Remove xdivert preference: ");
-                getPreferenceScreen().removePreference(mXDivertPref);
-            }
-        }
-
         if (SipUtil.isVoipSupported(getActivity())) {
             mSipSharedPreferences = new SipSharedPreferences(getActivity());
 
@@ -201,24 +185,6 @@ public class PhoneAccountSettingsFragment extends PreferenceFragment
             getPreferenceScreen().removePreference(
                     getPreferenceScreen().findPreference(SIP_SETTINGS_CATEGORY_PREF_KEY));
         }
-
-        mShowDurationSwitch = (SwitchPreference) findPreference(SHOW_DURATION_KEY);
-        if (mShowDurationSwitch != null) {
-            mShowDurationSwitch.setOnPreferenceChangeListener(this);
-            boolean checked = Settings.System.getInt(getContext().getContentResolver(),
-                    Constants.SETTINGS_SHOW_CALL_DURATION, 1) == 1;
-                    mShowDurationSwitch.setChecked(checked);
-                    mShowDurationSwitch.setSummary(checked ? R.string.duration_enable_summary
-                            : R.string.duration_disable_summary);
-        }
-
-        mVibrateAfterConnected = (SwitchPreference) findPreference(BUTTON_VIBRATE_CONNECTED_KEY);
-        if (mVibrateAfterConnected != null) {
-            mVibrateAfterConnected.setOnPreferenceChangeListener(this);
-            boolean checked = Settings.System.getInt(getContext().getContentResolver(),
-                    Constants.SETTINGS_VIBRATE_WHEN_ACCEPTED, 1) == 1;
-            mVibrateAfterConnected.setChecked(checked);
-        }
     }
 
     /**
@@ -243,18 +209,6 @@ public class PhoneAccountSettingsFragment extends PreferenceFragment
                     handleSipReceiveCallsOption(isEnabled);
                 }
             }).start();
-            return true;
-        } else if (pref == mShowDurationSwitch) {
-            boolean checked = (Boolean) objValue;
-            Settings.System.putInt(getContext().getContentResolver(),
-                    Constants.SETTINGS_SHOW_CALL_DURATION, checked ? 1 : 0);
-            mShowDurationSwitch.setSummary(checked ? R.string.duration_enable_summary
-                    : R.string.duration_disable_summary);
-            return true;
-        } else if (pref == mVibrateAfterConnected) {
-            boolean doVibrate = (Boolean) objValue;
-            Settings.System.putInt(getContext().getContentResolver(),
-                    Constants.SETTINGS_VIBRATE_WHEN_ACCEPTED, doVibrate ? 1 : 0);
             return true;
         }
         return false;
@@ -321,7 +275,7 @@ public class PhoneAccountSettingsFragment extends PreferenceFragment
 
     private void initAccountList(List<PhoneAccountHandle> enabledAccounts) {
 
-        boolean isMultiSimDevice = mTelephonyManager.isMultiSimEnabled();
+        final boolean isMultiSimDevice = mTelephonyManager.isMultiSimEnabled();
 
         // On a single-SIM device, do not list any accounts if the only account is the SIM-based
         // one. This is because on single-SIM devices, we do not expose SIM settings through the
@@ -334,10 +288,18 @@ public class PhoneAccountSettingsFragment extends PreferenceFragment
 
         // Obtain the list of phone accounts.
         List<PhoneAccount> accounts = new ArrayList<>();
+        final HashMap<PhoneAccount, SubscriptionInfo> accountToSubInfo = new HashMap<>();
         for (PhoneAccountHandle handle : enabledAccounts) {
             PhoneAccount account = mTelecomManager.getPhoneAccount(handle);
             if (account != null) {
                 accounts.add(account);
+                if (account.hasCapabilities(PhoneAccount.CAPABILITY_SIM_SUBSCRIPTION)) {
+                    SubscriptionInfo subInfo = mSubscriptionManager.getActiveSubscriptionInfo(
+                            mTelephonyManager.getSubIdForPhoneAccount(account));
+                    if (subInfo != null) {
+                        accountToSubInfo.put(account, subInfo);
+                    }
+                }
             }
         }
 
@@ -352,6 +314,17 @@ public class PhoneAccountSettingsFragment extends PreferenceFragment
                 boolean isSim2 = account2.hasCapabilities(PhoneAccount.CAPABILITY_SIM_SUBSCRIPTION);
                 if (isSim1 != isSim2) {
                     retval = isSim1 ? -1 : 1;
+                } else if (isMultiSimDevice) {
+                    // Order SIM accounts by SIM slot index
+                    SubscriptionInfo info1 = accountToSubInfo.get(account1);
+                    SubscriptionInfo info2 = accountToSubInfo.get(account2);
+                    if (info1 == null && info2 != null) {
+                        retval = 1;
+                    } else if (info1 != null && info2 == null) {
+                        retval = -1;
+                    } else if (info1 != null && info2 != null) {
+                        retval = Integer.compare(info1.getSimSlotIndex(), info2.getSimSlotIndex());
+                    }
                 }
 
                 // Then order by package
@@ -390,9 +363,7 @@ public class PhoneAccountSettingsFragment extends PreferenceFragment
                 // if we are on a multi-SIM device. For single-SIM devices, the settings are
                 // more spread out so there is no good single place to take the user, so we don't.
                 if (isMultiSimDevice) {
-                    SubscriptionInfo subInfo = mSubscriptionManager.getActiveSubscriptionInfo(
-                            mTelephonyManager.getSubIdForPhoneAccount(account));
-
+                    SubscriptionInfo subInfo = accountToSubInfo.get(account);
                     if (subInfo != null) {
                         intent = new Intent(TelecomManager.ACTION_SHOW_CALL_SETTINGS);
                         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

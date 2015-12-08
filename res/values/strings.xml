@@ -274,7 +274,7 @@
     <!-- Toast in Call settings when asked to launch settings for a secondary user -->
     <string name="call_settings_primary_user_only">Call settings can only be changed by the primary user.</string>
     <!-- Title of the "Call settings" settings screen, with a text label identifying which SIM the settings are for. -->
-    <string name="call_settings_with_label">Call settings (<xliff:g id="subscriptionlabel" example="Verizon">%s</xliff:g>)</string>
+    <string name="call_settings_with_label">Settings (<xliff:g id="subscriptionlabel" example="Mock Carrier">%s</xliff:g>)</string>
     <!-- Title of the alert dialog displayed if an error occurs while updating Call settings -->
     <string name="error_updating_title">Call settings error</string>
     <!-- Toast in Call settings dialog while settings are being read -->
@@ -1228,11 +1228,6 @@
     <!-- Title for the dialog used to display a network error message to the user -->
     <string name="network_error_message">Error message</string>
 
-    <!-- Shown in "Managed Roaming" dialog when registration is denied with rejCode 10. -->
-    <string name="managed_roaming_title">Managed Roaming</string>
-    <string name="managed_roaming_title_sub">Managed Roaming (SUB<xliff:g id="index" example="1">%d</xliff:g>)</string>
-    <string name="managed_roaming_dialog_content">Network with Limited Service found. Do you want to initiate a Network Search?</string>
-
     <!-- OTA-specific strings -->
     <!-- Title shown on OTA screen -->
     <string name="ota_title_activate">Activate your phone</string>
@@ -1485,11 +1480,4 @@
     <string name="exportAllcontatsFailed"> Failed to export all contacts to SIM !!!</string>
     <string name="exportAllcontatsNoContacts"> No Contacts found to export to SIM !!!</string>
     <string name="cursorError"> Cursor is not having proper data !!! </string>
-
-     <!-- XDivert Settings -->
-     <!-- Title for the XDivert Feature displayed in Call Settings -->
-     <string name="xdivert_title">X-Divert</string>
-     <!-- Summary for the XDivert Feature displayed in Call Settings -->
-     <string name="xdivert_summary">CFNRc Settings</string>
-
 </resources>
