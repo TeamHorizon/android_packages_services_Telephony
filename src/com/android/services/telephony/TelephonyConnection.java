@@ -36,6 +36,9 @@ import android.telecom.VideoProfile;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
+import android.telecom.TelecomManager;
+import android.telephony.PhoneNumberUtils;
+import android.util.Pair;
 
 import com.android.ims.ImsCallProfile;
 import com.android.internal.telephony.Call;
@@ -88,6 +91,7 @@ abstract class TelephonyConnection extends Connection {
     private boolean mIsEmergencyNumber = false;
     private boolean[] mIsPermDiscCauseReceived = new
             boolean[TelephonyManager.getDefault().getPhoneCount()];
+    private static final int MSG_ON_HOLD_TONE = 18;
 
     /**
      * Mappings from {@link com.android.internal.telephony.Connection} extras keys to their
@@ -187,6 +191,31 @@ abstract class TelephonyConnection extends Connection {
                 case MSG_CONNECTION_EXTRAS_CHANGED:
                     final Bundle extras = (Bundle) msg.obj;
                     updateExtras(extras);
+                    break;
+
+                case MSG_ON_HOLD_TONE:
+                    AsyncResult asyncResult = (AsyncResult) msg.obj;
+                    Pair<com.android.internal.telephony.Connection, Boolean> heldInfo =
+                            (Pair<com.android.internal.telephony.Connection, Boolean>)
+                                    asyncResult.result;
+
+                    // Determines if the hold tone is starting or stopping.
+                    boolean playTone = ((Boolean) (heldInfo.second)).booleanValue();
+
+                    // Determine which connection the hold tone is stopping or starting for
+                    com.android.internal.telephony.Connection heldConnection = heldInfo.first;
+
+                    // Only start or stop the hold tone if this is the connection which is starting
+                    // or stopping the hold tone.
+                    if (heldConnection == mOriginalConnection) {
+                        // If starting the hold tone, send a connection event to Telecom which will
+                        // cause it to play the on hold tone.
+                        if (playTone) {
+                            sendConnectionEvent(EVENT_ON_HOLD_TONE_START);
+                        } else {
+                            sendConnectionEvent(EVENT_ON_HOLD_TONE_END);
+                        }
+                    }
                     break;
             }
         }
@@ -675,6 +704,7 @@ abstract class TelephonyConnection extends Connection {
         getPhone().registerForDisconnect(mHandler, MSG_DISCONNECT, null);
         getPhone().registerForInCallVoicePrivacyOn(mHandler, MSG_PHONE_VP_ON, null);
         getPhone().registerForInCallVoicePrivacyOff(mHandler, MSG_PHONE_VP_OFF, null);
+        getPhone().registerForOnHoldTone(mHandler, MSG_ON_HOLD_TONE, null);
         mOriginalConnection.addPostDialListener(mPostDialListener);
         mOriginalConnection.addListener(mOriginalConnectionListener);
 
@@ -729,6 +759,7 @@ abstract class TelephonyConnection extends Connection {
                 getPhone().unregisterForSuppServiceNotification(mHandler);
                 getPhone().unregisterForInCallVoicePrivacyOn(mHandler);
                 getPhone().unregisterForInCallVoicePrivacyOff(mHandler);
+                getPhone().unregisterForOnHoldTone(mHandler);
             }
             mOriginalConnection.removePostDialListener(mPostDialListener);
             mOriginalConnection.removeListener(mOriginalConnectionListener);
