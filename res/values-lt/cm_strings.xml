@@ -73,5 +73,4 @@
   <string name="msim_mobile_network_settings_title">SIM %d mobiliojo tinklo nustatymai</string>
   <!-- Permission to modify network mode via intent -->
   <!-- Network mode picker dialog title -->
-  <!-- Mobile network settings, COLP -->
 </resources>

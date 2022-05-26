@@ -72,5 +72,4 @@
   <string name="preferred_network_mode_gsm_wcdma_preferred_choice">首選 GSM/WCDMA</string>
   <!-- Permission to modify network mode via intent -->
   <!-- Network mode picker dialog title -->
-  <!-- Mobile network settings, COLP -->
 </resources>
